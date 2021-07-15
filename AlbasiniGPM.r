@@ -6,10 +6,10 @@ library(ncdf4)
 library(lubridate)
 
 # import GPM and Albasini data 
-file <- file.choose()
+# file <- file.choose()
 GPM2 <- read.csv("/Users/hydro/Desktop/r-marie/GPM2.csv", skip = 8) 
 
-file <- file.choose()
+# file <- file.choose()
 Albasini <- read.csv("/Users/hydro/Desktop/r-marie/Albasini.csv", skip = 10, header = FALSE, stringsAsFactors = FALSE)
 names(Albasini) <- c("Date","DailyRain", "Flag")
 
@@ -68,3 +68,16 @@ GPM2Monthly <- GPM2Monthly[1:137,] # Albasini data missing for june and july
 plot(GPM2Monthly$result, AlbasiniMonthly$result, xlim = c(0,500), ylim = c(0,500))
 
 plot(GPM2Monthly$s, AlbasiniMonthly$s)
+
+
+mean(GPM2Monthly$result)
+mean(AlbasiniMonthly$result)
+
+# normalizing data: y = x - mean / standard deviation
+y = (GPM2Monthly$result - mean(GPM2Monthly$result)) / sd(GPM2Monthly$result)
+x = (AlbasiniMonthly$result -mean(AlbasiniMonthly$result)) / sd(AlbasiniMonthly$result)
+
+cor(GPM2Monthly$result, AlbasiniMonthly$result) # correlation coefficient, r, 0.8176615 before being normalized
+cor(y,x)
+
+# Albasini is a better estimate than Ohio ground (because the higher the cor the better)
