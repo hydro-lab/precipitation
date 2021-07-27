@@ -34,6 +34,7 @@ for (i in 1:nrow(GPMOS)) {
 dailycomp <- data.frame(dt, adrian, gpm) # form single data frame, needed for ggplot2
 ggplot(dailycomp, aes(x = adrian, y = gpm)) +
       geom_point() +
+      labs(x = "Ground-based Station, Adrian, OH, USA", y = "Global Precipitation Mission (satellite)") +
       theme(panel.background = element_rect(fill = "white", colour = "black")) +
       theme(aspect.ratio = 1) +
       theme(axis.text = element_text(face = "plain", size = 12))
