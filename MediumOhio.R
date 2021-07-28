@@ -5,19 +5,18 @@ library(ncdf4)
 library(lubridate)
 
 
-
+## GROUND-BASED STATIONS
 
 # do medium ohio dataset which is in ANNA and ALVORDTON 
 Alvordton <- read_csv("/Users/hydro/Desktop/r-marie/Alvordton.csv")
 Alvordton <- Alvordton[1:4087,]
 Alvordton = subset(Alvordton, select = -c(`"STATION","NAME","DATE",`, `"PRC`,`P"`, X4, X5))
 Alvordton <- rename(Alvordton, DATE = X6, prcp = X7)
-Alvordton$dt <- parse_date_time(Alvordton$DATE, "mdy") # Parses date to a date number
+Alvordton$dt <- as_date(parse_date_time(Alvordton$DATE, "mdy")) # Parses date to a date number
 
 Anna <- read_csv("/Users/hydro/Desktop/r-marie/ANNA.csv", col_names = FALSE)
 Anna = subset(Anna, select = -c(X1, X2, X3, X4, X5))
-Anna <- rename(Anna, DATE = X6)
-Anna <- rename(Anna, prcp = X7)
+Anna <- rename(Anna, DATE = X6, prcp = X7)
 Anna$DT <- as_date(fast_strptime(Anna$DATE, '\"%Y-%m-%d\"'))
 
 # REMEMBER to use na.rm 
@@ -37,7 +36,7 @@ for (i in 1:nrow(Anna)) {
 
 OhioMed <- data.frame(dt, AL, AN)
 OhioMed <- OhioMed %>%
-     mutate(OhioMed, prcp = rowMeans(select(OhioMed, AL, AN), na.rm = TRUE))
+     mutate(OhioMed, prcp = rowMeans(select(OhioMed, AL, AN), na.rm = TRUE)) # This appears to work; but if it doesn't, the next loop should.
 OhioMed$prcp <- NA
 for (i in 1:nrow(OhioMed)) { # for everthing in the new sorted dataframe
      if (is.na(OhioMed$AL[i]) == FALSE) { # IF AL is a number
@@ -57,34 +56,33 @@ for (i in 1:nrow(OhioMed)) { # for everthing in the new sorted dataframe
 # UPLOAD TO GITHUB!!!
 
 
-
+## SATELLITE DATA
 
 # GPM Medium Ohio dataset 
-GPMOM <- read.csv("/Users/hydro/Desktop/r-marie/GPMOM.csv", skip = 8)
+GPMOM <- read_csv("/Users/hydro/Desktop/r-marie/GPMOM.csv", skip = 8)
 
 # get dates into lubridate format
-GPMOM$DT <- mdy(GPMOM$time)
+GPMOM$DT <- as.numeric(mdy(GPMOM$time)) #changed this because the ground data are organized this way, OhioMed$dt
 
-# columns of year and month 
-GPMOM <- GPMOM %>%
-     mutate(year = year(DT))%>%
-     mutate(month = month(DT))
+# # columns of year and month 
+# GPMOM <- GPMOM %>%
+#      mutate(year = year(DT))%>%
+#      mutate(month = month(DT))
 
 s.date <- as.numeric(min(c(min(as_date(OhioMed$dt)), min(as_date(GPMOM$DT))))) # find earliest date
 e.date <- as.numeric(max(c(max(as_date(OhioMed$dt)), max(as_date(GPMOM$DT))))) # find latest date
 dt <- array(NA, dim = (e.date-s.date+1)) # preallocate arrays that contain the maximum days
-OhioMed <- dt
-GPMOM <- dt
+Ohio <- dt
+GPM <- dt
 dt <- c(s.date:e.date) # record dates
 for (i in 1:nrow(OhioMed)) {
-     AL[as.numeric(as_date(OhioMed$dt[i]))-s.date+1] <- OhioMed$prcp[i] # write data to new arrays by date
+     Ohio[as.numeric(as_date(OhioMed$dt[i]))-s.date+1] <- OhioMed$prcp[i] # write data to new arrays by date
 }
 for (i in 1:nrow(GPMOM)) {
-     AN[as.numeric(as_date(GPMOM$DT[i]))-s.date+1] <- GPMOM$mean_GPM_3IMERGDF_06_precipitationCal[i]
+     GPM[as.numeric(as_date(GPMOM$DT[i]))-s.date+1] <- GPMOM$mean_GPM_3IMERGDF_06_precipitationCal[i]
 }
 
-
-
+comp <- data.frame(dt, Ohio, GPM) # daily data for averaged ground data and satellite
 
 # plot the daily values 
 plot(OhioMed$prcp, GPMOM$mean_GPM_3IMERGDF_06_precipitationCal)
