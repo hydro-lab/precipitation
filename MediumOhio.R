@@ -3,6 +3,7 @@ library(readr)
 library(dplyr)
 library(ncdf4)
 library(lubridate)
+library(ggplot2)
 
 
 ## GROUND-BASED STATIONS
@@ -85,21 +86,59 @@ for (i in 1:nrow(GPMOM)) {
 comp <- data.frame(dt, Ohio, GPM) # daily data for averaged ground data and satellite
 
 # plot the daily values 
-plot(OhioMed$prcp, GPMOM$mean_GPM_3IMERGDF_06_precipitationCal)
+#plot(OhioMed$prcp, GPMOM$mean_GPM_3IMERGDF_06_precipitationCal)
 
-abline(lm(GPMOM$mean_GPM_3IMERGDF_06_precipitationCal ~ OhioMed$prcp)) # line of best fit                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+#abline(lm(GPMOM$mean_GPM_3IMERGDF_06_precipitationCal ~ OhioMed$prcp)) # line of best fit                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
 
+ggplot(comp, aes(x = Ohio, y = GPM)) +
+      geom_point() +
+      labs(x = "Ground-based Station, OH, USA", y = "Global Precipitation Mission (satellite)") +
+      theme(panel.background = element_rect(fill = "white", colour = "black")) +
+      theme(aspect.ratio = 1) +
+      theme(axis.text = element_text(face = "plain", size = 12))
 
+mon <- comp %>%
+      mutate(ym = (100 * year(as_date(dt))) + month(as_date(dt))) %>%
+      group_by(ym) %>%
+      summarize(ohio.m = sum(Ohio), ohio.s = sd(Ohio), gpm.m = sum(GPM), gpm.s = sd(GPM))
+ggplot(mon, aes(x = ohio.m, y = gpm.m)) +
+      geom_point() +
+      labs(x = "Ground-based Station, OH, USA", y = "Global Precipitation Mission (satellite)") +
+      theme(panel.background = element_rect(fill = "white", colour = "black")) +
+      theme(aspect.ratio = 1) +
+      theme(axis.text = element_text(face = "plain", size = 12))
+ggplot(mon, aes(x = ohio.s, y = gpm.s)) +
+      geom_point() +
+      labs(x = "Ground-based Station, OH, USA", y = "Global Precipitation Mission (satellite)") +
+      theme(panel.background = element_rect(fill = "white", colour = "black")) +
+      theme(aspect.ratio = 1) +
+      theme(axis.text = element_text(face = "plain", size = 12))
 
+yea <- comp %>%
+      mutate(y = year(as_date(dt))) %>%
+      group_by(y) %>%
+      summarize(ohio.m = sum(Ohio), ohio.s = sd(Ohio), gpm.m = sum(GPM), gpm.s = sd(GPM))
+ggplot(yea, aes(x = ohio.m, y = gpm.m)) +
+      geom_point() +
+      labs(x = "Ground-based Station, OH, USA", y = "Global Precipitation Mission (satellite)") +
+      theme(panel.background = element_rect(fill = "white", colour = "black")) +
+      theme(aspect.ratio = 1) +
+      theme(axis.text = element_text(face = "plain", size = 12))
+ggplot(yea, aes(x = ohio.s, y = gpm.s)) +
+      geom_point() +
+      labs(x = "Ground-based Station, OH, USA", y = "Global Precipitation Mission (satellite)") +
+      theme(panel.background = element_rect(fill = "white", colour = "black")) +
+      theme(aspect.ratio = 1) +
+      theme(axis.text = element_text(face = "plain", size = 12))
 
-# plot the standard deviations 
-plot(MedOhio$s, GPMOM$s) 
-abline(lm(GPMOM$s ~ MedOhio$s)) # line of best fit for standard deviation
-
-
-
-# get monthly values: result = monthly precipitation values  
- # GPMOM <- GPMOM %>%
-     #group_by(year, month) %>%
-     #summarise(result = sum(mean_GPM_3IMERGDF_06_precipitationCal, na.rm = TRUE), s = sd(mean_GPM_3IMERGDF_06_precipitationCal, na.rm = TRUE)) # sum of monthly rain
+# # plot the standard deviations 
+# plot(MedOhio$s, GPMOM$s) 
+# abline(lm(GPMOM$s ~ MedOhio$s)) # line of best fit for standard deviation
+# 
+# 
+# 
+# # get monthly values: result = monthly precipitation values  
+#  # GPMOM <- GPMOM %>%
+#      #group_by(year, month) %>%
+#      #summarise(result = sum(mean_GPM_3IMERGDF_06_precipitationCal, na.rm = TRUE), s = sd(mean_GPM_3IMERGDF_06_precipitationCal, na.rm = TRUE)) # sum of monthly rain
 
