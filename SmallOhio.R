@@ -39,37 +39,42 @@ ggplot(dailycomp, aes(x = adrian, y = gpm)) +
       theme(aspect.ratio = 1) +
       theme(axis.text = element_text(face = "plain", size = 12))
 
-# plot daily 
-plot(OhioSmall$PRCP, GPMOS$mean_GPM_3IMERGDF_06_precipitationCal)
+# # plot daily 
+# plot(OhioSmall$PRCP, GPMOS$mean_GPM_3IMERGDF_06_precipitationCal)
 
 # get dates into lubridate format
-OhioSmall$DT <- mdy(OhioSmall$DATE)
+# OhioSmall$DT <- mdy(OhioSmall$DATE)
  
 # columns of year and month 
 OhioSmall <- OhioSmall %>%
-     mutate(year = year(DT))%>%
-     mutate(month = month(DT))
+     mutate(year = year(dt)) %>%
+     mutate(month = month(dt))
 
 
 # get dates into lubridate format
-GPMOS$DT <- mdy(GPMOS$time)
+# GPMOS$DT <- mdy(GPMOS$time)
 
 # columns of year and month 
 GPMOS <- GPMOS %>%
-     mutate(year = year(DT))%>%
-     mutate(month = month(DT))
+     mutate(year = year(dt))%>%
+     mutate(month = month(dt))
 
 # get monthly values: result = monthly precipitation values  
-OhioSmall <- OhioSmall %>%
+OhioSmall_mon <- OhioSmall %>%
      group_by(year, month) %>%
-     summarise(result = sum(PRCP, na.rm = TRUE), s = sd(PRCP, na.rm = TRUE)) # sum of monthly rain
+     summarise(result = sum(PRCP, na.rm = TRUE), s = sd(PRCP, na.rm = TRUE)) %>% # sum of monthly rain
+     mutate(inst="Adrian")
 
-GPMOS <- GPMOS %>%
+GPMOS_mon <- GPMOS %>%
      group_by(year, month) %>%
-     summarise(result = sum(mean_GPM_3IMERGDF_06_precipitationCal, na.rm = TRUE), s = sd(mean_GPM_3IMERGDF_06_precipitationCal, na.rm = TRUE)) # sum of monthly rain
+     summarise(result = sum(prcp, na.rm = TRUE), s = sd(prcp, na.rm = TRUE)) %>% # sum of monthly rain
+     mutate(inst="GPM")
 
-# making the number of entries equal for OGPM and Ohio
-OhioSmall <- OhioSmall[1:135,]
+# # making the number of entries equal for OGPM and Ohio
+# OhioSmall <- OhioSmall[1:135,]
+
+Ohio_monthly <- rbind(OhioSmall_mon,GPMOS_mon)
+Ohio_mon_wide <- pivot_wider(Ohio_monthly, names_from = inst, values_from = result)
 
 # plot the monthly values 
 plot(OhioSmall$result, GPMOS$result, xlim = c(0,250), ylim = c(0,250))
